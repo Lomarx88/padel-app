@@ -1,6 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import DatePicker, { registerLocale } from "react-datepicker";
+import { it } from "date-fns/locale/it";
+import "react-datepicker/dist/react-datepicker.css";
+
+registerLocale("it", it);
 
 const ORARI = [
   "09:00", "10:00", "11:00", "12:00",
@@ -10,7 +15,7 @@ const ORARI = [
 const CAMPI = ["Campo 1", "Campo 2"];
 const oggi = new Date().toISOString().split("T")[0];
 export default function Prenota() {
-  const [data, setData] = useState("");
+  const [data, setData] = useState(null);
   const [campo, setCampo] = useState("Campo 1");
   const [orarioScelto, setOrarioScelto] = useState(null);
 
@@ -21,18 +26,20 @@ export default function Prenota() {
       </h1>
 
       {/* Selezione data */}
-      <div className="mb-6">
-        <label className="block text-lg font-semibold mb-2">
-          Scegli la data
-        </label>
-        <input
-          type="date"
-          value={data}
-          onChange={(e) => setData(e.target.value)}
-          min={oggi}
-          className="border rounded-lg p-3 w-full text-lg"
-        />
-      </div>
+<div className="mb-6">
+  <label className="block text-lg font-semibold mb-2">
+    Scegli la data
+  </label>
+  <DatePicker
+    selected={data}
+    onChange={(date) => setData(date)}
+    minDate={new Date()}
+    locale="it"
+    dateFormat="dd/MM/yyyy"
+    placeholderText="Clicca per scegliere la data"
+    className="border rounded-lg p-3 w-full text-lg cursor-pointer"
+  />
+</div>
 
       {/* Selezione campo */}
       <div className="mb-6">
@@ -82,8 +89,8 @@ export default function Prenota() {
       {data && orarioScelto && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-6">
           <h2 className="text-xl font-bold text-green-800 mb-2">Riepilogo</h2>
-         <p className="text-gray-700">📅 Data: <strong>
-  {data ? new Date(data + 'T00:00:00').toLocaleDateString('it-IT', { 
+       <p className="text-gray-700">📅 Data: <strong>
+  {data ? data.toLocaleDateString('it-IT', { 
     weekday: 'long', 
     year: 'numeric', 
     month: 'long', 
