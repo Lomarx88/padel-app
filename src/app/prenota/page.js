@@ -19,6 +19,28 @@ export default function Prenota() {
   const [campo, setCampo] = useState("Campo 1");
   const [orarioScelto, setOrarioScelto] = useState(null);
 
+  const handlePrenotazione = async () => {
+  if (!data || !orarioScelto) return;
+
+  const risposta = await fetch("/api/prenotazioni", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      data: data.toISOString().split("T")[0],
+      campo: campo,
+      orario: orarioScelto,
+    }),
+  });
+
+  const risultato = await risposta.json();
+
+  if (risposta.ok) {
+    alert(`Prenotazione confermata! ID: ${risultato.id}`);
+  } else {
+    alert(`Errore: ${risultato.errore}`);
+  }
+};
+
   return (
     <div className="max-w-2xl mx-auto pt-24 pb-10 px-4">
       <h1 className="text-3xl font-bold text-green-700 mb-8">
@@ -99,7 +121,7 @@ export default function Prenota() {
 </strong></p>
           <p className="text-gray-700">🎾 Campo: <strong>{campo}</strong></p>
           <p className="text-gray-700">🕐 Orario: <strong>{orarioScelto}</strong></p>
-          <button className="mt-4 w-full bg-green-700 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-800 transition">
+       <button onClick={handlePrenotazione} className="mt-4 w-full bg-green-700 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-800 transition">
             Conferma e paga
           </button>
         </div>
