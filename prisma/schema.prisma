@@ -14,4 +14,14 @@ model Prenotazione {
   campo    String
   orario   String
   creataIl DateTime @default(now())
+  utente   Utente?  @relation(fields: [utenteId], references: [id])
+  utenteId Int?
+}
+model Utente {
+  id           Int            @id @default(autoincrement())
+  nome         String
+  email        String         @unique
+  password     String
+  creataIl     DateTime       @default(now())
+  prenotazioni Prenotazione[]
 }

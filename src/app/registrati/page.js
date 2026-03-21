@@ -1,19 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function Login() {
+export default function Registrati() {
   const router = useRouter();
+  const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errore, setErrore] = useState("");
   const [caricamento, setCaricamento] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email || !password) {
+  const handleRegistrazione = async () => {
+    if (!nome || !email || !password) {
       setErrore("Compila tutti i campi");
       return;
     }
@@ -21,17 +21,19 @@ export default function Login() {
     setCaricamento(true);
     setErrore("");
 
-    const risultato = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
+    const risposta = await fetch("/api/registrati", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nome, email, password }),
     });
 
-    if (risultato?.error) {
-      setErrore("Email o password non corretti");
-      setCaricamento(false);
+    const risultato = await risposta.json();
+
+    if (risposta.ok) {
+      router.push("/login");
     } else {
-      router.push("/dashboard");
+      setErrore(risultato.errore);
+      setCaricamento(false);
     }
   };
 
@@ -39,7 +41,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
         <h1 className="text-3xl font-bold text-green-700 mb-6 text-center">
-          Accedi 🎾
+          Registrati 🎾
         </h1>
 
         {errore && (
@@ -47,6 +49,17 @@ export default function Login() {
             {errore}
           </div>
         )}
+
+        <div className="mb-4">
+          <label className="block text-sm font-semibold mb-1 text-black">Nome</label>
+          <input
+            type="text"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            placeholder="Il tuo nome"
+            className="border rounded-lg p-3 w-full text-black"
+          />
+        </div>
 
         <div className="mb-4">
           <label className="block text-sm font-semibold mb-1 text-black">Email</label>
@@ -65,23 +78,23 @@ export default function Login() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="La tua password"
+            placeholder="Minimo 6 caratteri"
             className="border rounded-lg p-3 w-full text-black"
           />
         </div>
 
         <button
-          onClick={handleLogin}
+          onClick={handleRegistrazione}
           disabled={caricamento}
           className="w-full bg-green-700 text-white py-3 rounded-lg font-semibold hover:bg-green-800 transition disabled:opacity-50"
         >
-          {caricamento ? "Accesso..." : "Accedi"}
+          {caricamento ? "Registrazione..." : "Registrati"}
         </button>
 
         <p className="text-center text-gray-500 mt-4 text-sm">
-          Non hai un account?{" "}
-          <Link href="/registrati" className="text-green-700 font-semibold">
-            Registrati
+          Hai già un account?{" "}
+          <Link href="/login" className="text-green-700 font-semibold">
+            Accedi
           </Link>
         </p>
       </div>
