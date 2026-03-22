@@ -4,6 +4,7 @@ import { useState } from "react";
 import DatePicker, { registerLocale } from "react-datepicker";
 import { it } from "date-fns/locale/it";
 import "react-datepicker/dist/react-datepicker.css";
+import { useRouter } from "next/navigation";
 
 registerLocale("it", it);
 
@@ -14,7 +15,9 @@ const ORARI = [
 
 const CAMPI = ["Campo 1", "Campo 2"];
 const oggi = new Date().toISOString().split("T")[0];
+
 export default function Prenota() {
+  const router = useRouter();
   const [data, setData] = useState(null);
   const [campo, setCampo] = useState("Campo 1");
   const [orarioScelto, setOrarioScelto] = useState(null);
@@ -35,7 +38,7 @@ export default function Prenota() {
   const risultato = await risposta.json();
 
   if (risposta.ok) {
-    alert(`Prenotazione confermata! ID: ${risultato.id}`);
+  router.push("/dashboard");
   } else {
     alert(`Errore: ${risultato.errore}`);
   }
