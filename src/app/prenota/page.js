@@ -22,42 +22,24 @@ export default function Prenota() {
   const [orarioScelto, setOrarioScelto] = useState(null);
 
   const handlePrenotazione = async () => {
-    if (!data || !orarioScelto) return;
+  if (!data || !orarioScelto) return;
 
-    const slotData = data.toISOString().split("T")[0];
+  const slotData = data.toISOString().split("T")[0];
 
-    // Prima verifica se lo slot è disponibile
-    const verifica = await fetch("/api/prenotazioni/verifica", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        data: slotData,
-        campo: campo,
-        orario: orarioScelto,
-      }),
-    });
+  // Redirect a Stripe direttamente
+  const checkout = await fetch("/api/checkout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      data: slotData,
+      campo: campo,
+      orario: orarioScelto,
+    }),
+  });
 
-    const risultatoVerifica = await verifica.json();
-
-    if (!verifica.ok) {
-      alert(`Errore: ${risultatoVerifica.errore}`);
-      return;
-    }
-
-    // Redirect a Stripe
-    const checkout = await fetch("/api/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        data: slotData,
-        campo: campo,
-        orario: orarioScelto,
-      }),
-    });
-
-    const { url } = await checkout.json();
-    window.location.href = url;
-  };
+  const { url } = await checkout.json();
+  window.location.href = url;
+};
 
   return (
     <div className="max-w-2xl mx-auto pt-24 pb-10 px-4">

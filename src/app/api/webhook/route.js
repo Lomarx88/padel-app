@@ -30,10 +30,12 @@ export async function POST(request) {
       headers: { "Content-Type": "application/json" }
     });
   }
-
-  if (event.type === "checkout.session.completed") {
+if (event.type === "checkout.session.completed") {
     const session = event.data.object;
+    console.log("✅ Checkout completato!");
+    console.log("Metadata:", session.metadata);
     const { data, campo, orario, email } = session.metadata;
+    console.log("Data:", data, "Campo:", campo, "Orario:", orario, "Email:", email);
 
     if (data && campo && orario && email) {
       await prisma.prenotazione.create({
@@ -44,6 +46,9 @@ export async function POST(request) {
           utente: { connect: { email } },
         },
       });
+      console.log("✅ Prenotazione salvata!");
+    } else {
+      console.log("❌ Metadata mancanti!");
     }
   }
 
