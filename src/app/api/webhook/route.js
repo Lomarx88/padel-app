@@ -4,12 +4,6 @@ import { headers } from "next/headers";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
 export async function POST(request) {
   const body = await request.text();
   const headersList = await headers();
@@ -30,7 +24,8 @@ export async function POST(request) {
       headers: { "Content-Type": "application/json" }
     });
   }
-if (event.type === "checkout.session.completed") {
+
+  if (event.type === "checkout.session.completed") {
     const session = event.data.object;
     console.log("✅ Checkout completato!");
     console.log("Metadata:", session.metadata);
