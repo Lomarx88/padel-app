@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DatePicker, { registerLocale } from "react-datepicker";
 import { it } from "date-fns/locale/it";
 import "react-datepicker/dist/react-datepicker.css";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 registerLocale("it", it);
 
@@ -17,30 +18,32 @@ const CAMPI = ["Campo 1", "Campo 2"];
 
 export default function Prenota() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [data, setData] = useState(null);
   const [campo, setCampo] = useState("Campo 1");
   const [orarioScelto, setOrarioScelto] = useState(null);
 
-const handlePrenotazione = async () => {
-  if (!data || !orarioScelto) return;
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
 
-  const slotData = data.toISOString().split("T")[0];
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-gray-500 text-lg">Caricamento...</p>
+      </div>
+    );
+  }
 
-  try {
-    // Prima verifica se lo slot è disponibile
-    const verifica = await fetch("/api/prenotazioni/verifica", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        data: slotData,
-        campo: campo,
-        orario: orarioScelto,
-      }),
-    });
+  const handlePrenotazione = async () => {
+    if (!data || !orarioScelto) return;
 
-    if (verifica.ok) {
-      // Slot disponibile — vai a Stripe
-      const checkout = await fetch("/api/checkout", {
+    const slotData = data.toISOString().split("T")[0];
+
+    try {
+      const verifica = await fetch("/api/prenotazioni/verifica", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -50,23 +53,34 @@ const handlePrenotazione = async () => {
         }),
       });
 
-      const { url } = await checkout.json();
-      window.location.href = url;
-    } else {
-      const risultatoVerifica = await verifica.json();
-      alert(`❌ ${risultatoVerifica.errore}`);
+      if (verifica.ok) {
+        const checkout = await fetch("/api/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            data: slotData,
+            campo: campo,
+            orario: orarioScelto,
+          }),
+        });
+
+        const { url } = await checkout.json();
+        window.location.href = url;
+      } else {
+        const risultatoVerifica = await verifica.json();
+        alert(`❌ ${risultatoVerifica.errore}`);
+      }
+    } catch (error) {
+      alert("❌ Errore di connessione, riprova tra qualche secondo");
     }
-  } catch (error) {
-    alert("❌ Errore di connessione, riprova tra qualche secondo");
-  }
-};
+  };
+
   return (
     <div className="max-w-2xl mx-auto pt-24 pb-10 px-4">
       <h1 className="text-3xl font-bold text-green-700 mb-8">
         Prenota un campo 🎾
       </h1>
 
-      {/* Selezione data */}
       <div className="mb-6">
         <label className="block text-lg font-semibold mb-2">
           Scegli la data
@@ -82,7 +96,6 @@ const handlePrenotazione = async () => {
         />
       </div>
 
-      {/* Selezione campo */}
       <div className="mb-6">
         <label className="block text-lg font-semibold mb-2">
           Scegli il campo
@@ -104,7 +117,6 @@ const handlePrenotazione = async () => {
         </div>
       </div>
 
-      {/* Slot orari */}
       <div className="mb-8">
         <label className="block text-lg font-semibold mb-2">
           Scegli l&apos;orario
@@ -126,7 +138,6 @@ const handlePrenotazione = async () => {
         </div>
       </div>
 
-      {/* Riepilogo e bottone */}
       {data && orarioScelto && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-6">
           <h2 className="text-xl font-bold text-green-800 mb-2">Riepilogo</h2>
