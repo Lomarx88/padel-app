@@ -4,6 +4,17 @@ import { prisma } from "@/app/lib/prisma";
 import bcrypt from "bcryptjs";
 
 export const authOptions = {
+  cookies: {
+    sessionToken: {
+      name: `__Secure-next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: true,
+      },
+    },
+  },
   providers: [
     CredentialsProvider({
       name: "credentials",
