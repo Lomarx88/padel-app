@@ -130,7 +130,18 @@ export default function Prenota() {
         </label>
         <div className="grid grid-cols-4 gap-3">
           {ORARI.map((orario) => {
-            const occupato = slotOccupati.includes(orario);
+          const ora = new Date();
+          const dataSelezionata = data ? new Date(data) : null;
+          const oggi = new Date();
+          const isOggi = dataSelezionata && 
+          dataSelezionata.getDate() === oggi.getDate() &&
+          dataSelezionata.getMonth() === oggi.getMonth() &&
+          dataSelezionata.getFullYear() === oggi.getFullYear();
+
+          const oraOrario = parseInt(orario.split(":")[0]);
+          const oraAttuale = ora.getHours();
+          const orarioPassato = isOggi && oraOrario <= oraAttuale;
+          const occupato = slotOccupati.includes(orario) || orarioPassato;
             return (
               <button
                 key={orario}
