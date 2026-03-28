@@ -72,6 +72,25 @@ export async function POST(request) {
           </div>
         `,
       });
+      // Notifica admin
+await resend.emails.send({
+  from: "Padel App <onboarding@resend.dev>",
+  to: "lomarx88@live.it",
+  subject: "🎾 Nuova prenotazione ricevuta!",
+  html: `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+      <h1 style="color: #15803d;">Nuova prenotazione! 🎾</h1>
+      <p>È arrivata una nuova prenotazione:</p>
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+        <p>👤 <strong>Utente:</strong> ${utente?.nome || ""} (${email})</p>
+        <p>📅 <strong>Data:</strong> ${new Date(data + 'T00:00:00').toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <p>🎾 <strong>Campo:</strong> ${campo}</p>
+        <p>🕐 <strong>Orario:</strong> ${orario}</p>
+        <p>💶 <strong>Importo:</strong> €15,00</p>
+      </div>
+    </div>
+  `,
+});
 
       console.log("✅ Prenotazione salvata ed email inviata!");
     }
