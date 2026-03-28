@@ -75,7 +75,7 @@ export async function POST(request) {
       // Notifica admin
 await resend.emails.send({
   from: "Padel App <onboarding@resend.dev>",
-  to: "lomarx88@live.it",
+  to: "lomarx17@gmail.com",
   subject: "🎾 Nuova prenotazione ricevuta!",
   html: `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
