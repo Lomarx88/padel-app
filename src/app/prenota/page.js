@@ -22,12 +22,28 @@ export default function Prenota() {
   const [data, setData] = useState(null);
   const [campo, setCampo] = useState("Campo 1");
   const [orarioScelto, setOrarioScelto] = useState(null);
+  const [slotOccupati, setSlotOccupati] = useState([]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
     }
   }, [status, router]);
+
+  // Carica slot occupati quando cambia data o campo
+  useEffect(() => {
+    if (!data) return;
+
+    const fetchSlotOccupati = async () => {
+      const slotData = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`;
+      const risposta = await fetch(`/api/prenotazioni/verifica?data=${slotData}&campo=${campo}`);
+      const risultato = await risposta.json();
+      setSlotOccupati(risultato.slotOccupati || []);
+      setOrarioScelto(null);
+    };
+
+    fetchSlotOccupati();
+  }, [data, campo]);
 
   if (status === "loading") {
     return (
@@ -40,10 +56,10 @@ export default function Prenota() {
   const handlePrenotazione = async () => {
     if (!data || !orarioScelto) return;
 
-    const slotData = data.toISOString().split("T")[0];
+    const slotData = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`;
 
     try {
-      const verifica = await fetch("/api/prenotazioni/verifica", {
+      const checkout = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -53,23 +69,14 @@ export default function Prenota() {
         }),
       });
 
-      if (verifica.ok) {
-        const checkout = await fetch("/api/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            data: slotData,
-            campo: campo,
-            orario: orarioScelto,
-          }),
-        });
+      const risultatoCheckout = await checkout.json();
 
-        const { url } = await checkout.json();
-        window.location.href = url;
-      } else {
-        const risultatoVerifica = await verifica.json();
-        alert(`❌ ${risultatoVerifica.errore}`);
+      if (!checkout.ok) {
+        alert(`❌ ${risultatoCheckout.errore}`);
+        return;
       }
+
+      window.location.href = risultatoCheckout.url;
     } catch (error) {
       alert("❌ Errore di connessione, riprova tra qualche secondo");
     }
@@ -122,20 +129,31 @@ export default function Prenota() {
           Scegli l&apos;orario
         </label>
         <div className="grid grid-cols-4 gap-3">
-          {ORARI.map((orario) => (
-            <button
-              key={orario}
-              onClick={() => setOrarioScelto(orario)}
-              className={`py-3 rounded-lg border-2 font-semibold transition ${
-                orarioScelto === orario
-                  ? "bg-green-700 text-white border-green-700"
-                  : "bg-white text-green-700 border-green-700 hover:bg-green-50"
-              }`}
-            >
-              {orario}
-            </button>
-          ))}
+          {ORARI.map((orario) => {
+            const occupato = slotOccupati.includes(orario);
+            return (
+              <button
+                key={orario}
+                onClick={() => !occupato && setOrarioScelto(orario)}
+                disabled={occupato}
+                className={`py-3 rounded-lg border-2 font-semibold transition ${
+                  occupato
+                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through"
+                    : orarioScelto === orario
+                    ? "bg-green-700 text-white border-green-700"
+                    : "bg-white text-green-700 border-green-700 hover:bg-green-50"
+                }`}
+              >
+                {orario}
+              </button>
+            );
+          })}
         </div>
+        {slotOccupati.length > 0 && (
+          <p className="text-sm text-gray-400 mt-2">
+            Gli orari barrati sono già occupati
+          </p>
+        )}
       </div>
 
       {data && orarioScelto && (
