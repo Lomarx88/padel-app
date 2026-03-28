@@ -12,7 +12,9 @@ export default function NavBar() {
       <Link href="/prenota">Prenota</Link>
       {session ? (
         <>
-          <span className="text-green-300">Ciao, {session.user.nome}!</span>
+          <Link href="/dashboard" className="text-green-300">
+            Ciao, {session.user.nome}!
+          </Link>
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
             className="bg-red-500 px-4 py-1 rounded-full text-sm hover:bg-red-600 transition"
